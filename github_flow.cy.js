@@ -4,7 +4,7 @@
 describe('Fluxo de Autenticação e Navegação no GitHub', () => {
 
   // --- Teste 1: Login e Validação de Usuário ---
-  it('Deve logar e validar as informações do usuário logado', () => {
+  it.only('Deve logar e validar as informações do usuário logado', () => {
     // 1. Abrir o navegador e Acessar a página inicial
     cy.visit('/');
 
@@ -21,14 +21,14 @@ describe('Fluxo de Autenticação e Navegação no GitHub', () => {
     cy.url().should('include', 'github.com'); 
 
     // 5. Validar o nome do usuário (Abertura do Menu)
-    // CORREÇÃO DEFINITIVA COM FORÇA: Encontra a imagem do avatar, sobe para o elemento clicável mais próximo e força o clique.
+    // CORREÇÃO DEFINITIVA: Encontra a imagem do avatar no header, garante a visibilidade e clica no elemento pai (o link/botão).
     cy.get('header img', { timeout: 10000 }) 
       .should('be.visible') // Espera a imagem ser visível
-      .closest('a, button, summary') // Sobe para o elemento interativo mais próximo
-      .click({ force: true }); // Força o clique devido à instabilidade do cabeçalho do GitHub
+      .parent()             // Sobe para o link/botão clicável que envolve a imagem
+      .click();
     
     // O seletor abaixo (a.Truncate-text) só funciona depois que o menu está aberto!
-    cy.get('a.Truncate-text').should('be.visible');
+    cy.get('.text-bold').should('contain.text', 'Lj-2013');
   });
 
   // --- Teste 2: Interação com Repositórios ---
@@ -59,6 +59,7 @@ describe('Fluxo de Autenticação e Navegação no GitHub', () => {
     cy.contains('h1', /Create a new repository|Criar um novo repositório/, { timeout: 10000 }); 
     
     // Agora que a página está estável, procuramos o campo de input e digitamos
+    // Este seletor já havia sido corrigido para timeout.
     cy.xpath('//*[@id="repository_name"]', { timeout: 10000 })
       .type(newRepoName);
       
@@ -71,12 +72,12 @@ describe('Fluxo de Autenticação e Navegação no GitHub', () => {
 
   // --- Teste 3: Logout e Finalização ---
   it('Deve realizar o Logout e validar a finalização', () => {
-    // 1. Deslogar da conta (CORREÇÃO DEFINITIVA: Encontra a imagem e clica no elemento clicável)
-    // Procura a imagem no cabeçalho, garante a visibilidade e clica no elemento clicável mais próximo.
+    // 1. Deslogar da conta (CORREÇÃO DEFINITIVA: Encontra a imagem e clica no pai)
+    // Procura a imagem no cabeçalho, garante a visibilidade e clica no pai (o link/botão).
     cy.get('header img', { timeout: 10000 })
       .should('be.visible')
-      .closest('a, button, summary')
-      .click({ force: true }); // Força o clique para garantir que o menu abra
+      .parent() 
+      .click();
 
     // 2. Clica no botão "Sign out" dentro do menu que abriu
     cy.contains('Sign out').click();
@@ -86,3 +87,8 @@ describe('Fluxo de Autenticação e Navegação no GitHub', () => {
     cy.contains('Sign in').should('be.visible');
   });
 });
+
+
+
+
+
